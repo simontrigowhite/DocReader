@@ -1,15 +1,15 @@
 ﻿// Code for files
 
-var progress;
+var thisProgress;
 
-function setUpFileInput(handleDocumentXml) {
+function setUpFileInput(handleDocumentXml, progress) {
 
+    thisProgress = progress;
+    
     $("#byte_range").hide();
     $("#byte_content").hide();
     $("#cancel_read").hide();
     $("#progress_bar").hide();
-
-    progress = document.querySelector('.percent');
 
     addClick($("cancel-read"), abortRead);
 
@@ -27,14 +27,14 @@ function handleFileSelectBrowse(evt) {
     evt.stopPropagation();
     evt.preventDefault();
 
-    handleFile(evt.target.files);
+    handleFile(evt.target.files, thisProgress);
 }
 
 function handleFileSelectDrop(evt) {
     evt.stopPropagation();
     evt.preventDefault();
 
-    handleFile(evt.dataTransfer.files);
+    handleFile(evt.dataTransfer.files, thisProgress);
 }
 
 function handleFileSelectDragOver(evt) {
@@ -116,7 +116,7 @@ function readFile(file) {
     $("#byte_range").show();
     $("#byte_content").show();
 
-    var reader = getReader(file, start, stop, progress);
+    var reader = getReader(file, start, stop, thisProgress);
 
     var blob = file.slice(start, stop + 1);
     reader.readAsBinaryString(blob);
@@ -177,8 +177,8 @@ function updateProgress(evt) {
         var percentLoaded = Math.round((evt.loaded / evt.total) * 100);
         // Increase the progress bar length.
         if (percentLoaded < 100) {
-            progress.style.width = percentLoaded + '%';
-            progress.textContent = percentLoaded + '%';
+            thisProgress.style.width = percentLoaded + '%';
+            thisProgress.textContent = percentLoaded + '%';
         }
     }
 }

@@ -10,6 +10,8 @@ function handleDocumentXml(xmlContents) {
 
 function runPage() {
 
-    setUpFileInput(handleDocumentXml);
+    var progress = document.querySelector('.percent');
+
+    setUpFileInput(handleDocumentXml, progress);
 
 }
