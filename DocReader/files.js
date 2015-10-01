@@ -4,11 +4,12 @@ function setUpFileInput(clearThem, handleList, handleText, handleDocumentXml) {
 
     var reader;
     
-    var progress = $("#progress_bar");
+    var progress = $(".percent");
+    var progressBar = $("#progress_bar");
     var cancelRead = $("#cancel_read");
     
     cancelRead.hide();
-    progress.hide();
+    progressBar.hide();
 
     addClick(cancelRead, abortRead);
 
@@ -25,14 +26,14 @@ function setUpFileInput(clearThem, handleList, handleText, handleDocumentXml) {
         evt.stopPropagation();
         evt.preventDefault();
 
-        handleFile(evt.target.files, progress);
+        handleFile(evt.target.files);
     }
 
     function handleFileSelectDrop(evt) {
         evt.stopPropagation();
         evt.preventDefault();
 
-        handleFile(evt.dataTransfer.files, progress);
+        handleFile(evt.dataTransfer.files);
     }
 
     function handleFileSelectDragOver(evt) {
@@ -46,7 +47,7 @@ function setUpFileInput(clearThem, handleList, handleText, handleDocumentXml) {
         handleList(fileSummary(files));
 
         cancelRead.show();
-        progress.show();
+        progressBar.show();
 
         clearThem();
         
@@ -64,7 +65,7 @@ function setUpFileInput(clearThem, handleList, handleText, handleDocumentXml) {
         var start = 0;
         var stop = file.size - 1;
 
-        reader = getReader(file, start, stop, progress);
+        reader = getReader(file, start, stop);
 
         var blob = file.slice(start, stop + 1);
         reader.readAsBinaryString(blob);
@@ -104,7 +105,7 @@ function setUpFileInput(clearThem, handleList, handleText, handleDocumentXml) {
     function getReader(file, start, stop) {
 
         // Reset progress indicator on new file selection.
-        progress.css("width: 0%;");
+        progress.width("0%");
         progress.text('0%');
 
         var newReader = new FileReader();
@@ -114,12 +115,12 @@ function setUpFileInput(clearThem, handleList, handleText, handleDocumentXml) {
             alert('File read cancelled');
         };
         newReader.onloadstart = function (e) {
-            progress.addClass('loading');
+            progressBar.addClass('loading');
         };
         newReader.onload = function (e) {
-            progress.css("width: 100%;");
+            progress.width("100%");
             progress.text('100%');
-            var progressId = progress.attr("id");
+            var progressId = progressBar.attr("id");
             setTimeout("document.getElementById('progress_bar').className='';", 2000);
         };
 
@@ -146,7 +147,7 @@ function setUpFileInput(clearThem, handleList, handleText, handleDocumentXml) {
             var percentLoaded = Math.round((evt.loaded / evt.total) * 100);
             // Increase the progress bar length.
             if (percentLoaded < 100) {
-                progress.css("width: " + percentLoaded + "%;");
+                progress.width(percentLoaded + "%");
                 progress.text(percentLoaded + "%");
             }
         }
