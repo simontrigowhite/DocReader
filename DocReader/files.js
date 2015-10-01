@@ -1,13 +1,16 @@
 ﻿// Code for files
 
-function setUpFileInput(handleText, handleDocumentXml, progress) {
+function setUpFileInput(clearThem, handleList, handleText, handleDocumentXml) {
 
-    $("#byte_range").hide();
-    $("#byte_content").hide();
-    $("#cancel_read").hide();
+    var reader;
+    
+    var progress = $("#progress_bar");
+    var cancelRead = $("#cancel_read");
+    
+    cancelRead.hide();
     progress.hide();
 
-    addClick($("cancel-read"), abortRead);
+    addClick(cancelRead, abortRead);
 
     if (!(window.File && window.FileReader && window.FileList && window.Blob))
         alert("The File APIs are not fully supported in this browser.");
@@ -40,18 +43,13 @@ function setUpFileInput(handleText, handleDocumentXml, progress) {
 
     function handleFile(files) {
 
-        $("#list").html("<ul>" + fileSummary(files) + "</ul>");
+        handleList(fileSummary(files));
 
-        $("#xml_content").text("");
-        $("#byte_range").text("");
-        $("#byte_content").text("");
-
-        $("#cancel_read").show();
+        cancelRead.show();
         progress.show();
 
-        $("#byte_range").show();
-        $("#byte_content").show();
-
+        clearThem();
+        
         readFiles(files);
     }
 
@@ -66,7 +64,7 @@ function setUpFileInput(handleText, handleDocumentXml, progress) {
         var start = 0;
         var stop = file.size - 1;
 
-        var reader = getReader(file, start, stop, progress);
+        reader = getReader(file, start, stop, progress);
 
         var blob = file.slice(start, stop + 1);
         reader.readAsBinaryString(blob);
@@ -106,37 +104,36 @@ function setUpFileInput(handleText, handleDocumentXml, progress) {
     function getReader(file, start, stop) {
 
         // Reset progress indicator on new file selection.
-        progress.css("width = 0px;");
+        progress.css("width: 0%;");
         progress.text('0%');
 
-        var reader = new FileReader();
-        reader.onerror = errorHandler;
-        reader.onprogress = updateProgress;
-        reader.onabort = function (e) {
+        var newReader = new FileReader();
+        newReader.onerror = errorHandler;
+        newReader.onprogress = updateProgress;
+        newReader.onabort = function (e) {
             alert('File read cancelled');
         };
-        reader.onloadstart = function (e) {
+        newReader.onloadstart = function (e) {
             progress.addClass('loading');
         };
-        reader.onload = function (e) {
-            progress.css("width = 100%");
+        newReader.onload = function (e) {
+            progress.css("width: 100%;");
             progress.text('100%');
             var progressId = progress.attr("id");
             setTimeout("document.getElementById('progress_bar').className='';", 2000);
         };
 
         // If we use onloadend, we need to check the readyState.
-        reader.onloadend = function (evt) {
+        newReader.onloadend = function (evt) {
             if (evt.target.readyState == FileReader.DONE) {
                 handleText(evt.target.result);
                 handleSummary(['Read bytes: ', start + 1, ' - ', stop + 1,
                      ' of ', file.size, ' byte file'].join(''));
 
-                //zippedContents = evt.target.result;
-
+                cancelRead.hide();
             }
         };
-        return reader;
+        return newReader;
     }
 
     function abortRead() {
@@ -149,7 +146,7 @@ function setUpFileInput(handleText, handleDocumentXml, progress) {
             var percentLoaded = Math.round((evt.loaded / evt.total) * 100);
             // Increase the progress bar length.
             if (percentLoaded < 100) {
-                progress.css("width = " + percentLoaded + "%;");
+                progress.css("width: " + percentLoaded + "%;");
                 progress.text(percentLoaded + "%");
             }
         }
@@ -181,5 +178,5 @@ function fileSummary(files) {
             f.lastModifiedDate ? f.lastModifiedDate.toLocaleDateString() : "n/a",
             "</li>");
     }
-    return output.join("");
+    return "<ul>" + output.join("") + "</ul>";
 }
