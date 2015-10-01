@@ -8,10 +8,10 @@ function runPage() {
     $("#byte_range").hide();
     $("#byte_content").hide();
 
-    setUpFileInput(clearThem, handleList, handleText, handleDocumentXml);
+    setUpFileInput(handleStartReadFile, handleList, handleText, handleDocumentXml);
 }
 
-function clearThem() {
+function handleStartReadFile() {
     $("#xml_content").text("");
 
     $("#byte_range").show();

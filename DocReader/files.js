@@ -1,12 +1,15 @@
-﻿// Code for files
+﻿// Code for reading files
 
-function setUpFileInput(clearThem, handleList, handleText, handleDocumentXml) {
+function setUpFileInput(handleStartReadFile, handleList, handleText, handleDocumentXml) {
 
     var reader;
     
     var progress = $(".percent");
     var progressBar = $("#progress_bar");
     var cancelRead = $("#cancel_read");
+    var dropZoneId = "drop_zone";
+    var filesId = "files";
+    var loadingClass = "loading";
     
     cancelRead.hide();
     progressBar.hide();
@@ -16,9 +19,9 @@ function setUpFileInput(clearThem, handleList, handleText, handleDocumentXml) {
     if (!(window.File && window.FileReader && window.FileList && window.Blob))
         alert("The File APIs are not fully supported in this browser.");
 
-    document.getElementById("files").addEventListener("change", handleFileSelectBrowse, false);
+    document.getElementById(filesId).addEventListener("change", handleFileSelectBrowse, false);
 
-    var dropZone = document.getElementById("drop_zone");
+    var dropZone = document.getElementById(dropZoneId);
     dropZone.addEventListener("drop", handleFileSelectDrop, false);
     dropZone.addEventListener("dragover", handleFileSelectDragOver, false);
     
@@ -49,7 +52,7 @@ function setUpFileInput(clearThem, handleList, handleText, handleDocumentXml) {
         cancelRead.show();
         progressBar.show();
 
-        clearThem();
+        handleStartReadFile();
         
         readFiles(files);
     }
@@ -101,35 +104,34 @@ function setUpFileInput(clearThem, handleList, handleText, handleDocumentXml) {
         });
     }
 
-
     function getReader(file, start, stop) {
 
         // Reset progress indicator on new file selection.
         progress.width("0%");
-        progress.text('0%');
+        progress.text("0%");
 
         var newReader = new FileReader();
         newReader.onerror = errorHandler;
         newReader.onprogress = updateProgress;
         newReader.onabort = function (e) {
-            alert('File read cancelled');
+            alert("File read cancelled");
         };
         newReader.onloadstart = function (e) {
-            progressBar.addClass('loading');
+            progressBar.addClass(loadingClass);
         };
         newReader.onload = function (e) {
             progress.width("100%");
-            progress.text('100%');
+            progress.text("100%");
             var progressId = progressBar.attr("id");
-            setTimeout("document.getElementById('progress_bar').className='';", 2000);
+            setTimeout("document.getElementById('" + progressId + "').className='';", 2000);
         };
 
         // If we use onloadend, we need to check the readyState.
         newReader.onloadend = function (evt) {
             if (evt.target.readyState == FileReader.DONE) {
                 handleText(evt.target.result);
-                handleSummary(['Read bytes: ', start + 1, ' - ', stop + 1,
-                     ' of ', file.size, ' byte file'].join(''));
+                handleSummary(["Read bytes: ", start + 1, " - ", stop + 1,
+                     " of ", file.size, " byte file"].join(""));
 
                 cancelRead.hide();
             }
@@ -156,15 +158,15 @@ function setUpFileInput(clearThem, handleList, handleText, handleDocumentXml) {
     function errorHandler(evt) {
         switch (evt.target.error.code) {
             case evt.target.error.NOT_FOUND_ERR:
-                alert('File Not Found!');
+                alert("File Not Found!");
                 break;
             case evt.target.error.NOT_READABLE_ERR:
-                alert('File is not readable');
+                alert("File is not readable");
                 break;
             case evt.target.error.ABORT_ERR:
                 break; // noop
             default:
-                alert('An error occurred reading this file.');
+                alert("An error occurred reading this file.");
         };
     }
 }
