@@ -2,11 +2,7 @@
 
 var progress;
 
-function handleDocumentXml(xmlContents) {
-    $("#xml_content").text(xmlContents);
-}
-
-function setUpFileInput() {
+function setUpFileInput(handleDocumentXml) {
 
     $("#byte_range").hide();
     $("#byte_content").hide();
