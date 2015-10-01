@@ -1,15 +1,11 @@
 ﻿// Code for files
 
-var thisProgress;
+function setUpFileInput(handleText, handleDocumentXml, progress) {
 
-function setUpFileInput(handleDocumentXml, progress) {
-
-    thisProgress = progress;
-    
     $("#byte_range").hide();
     $("#byte_content").hide();
     $("#cancel_read").hide();
-    $("#progress_bar").hide();
+    progress.hide();
 
     addClick($("cancel-read"), abortRead);
 
@@ -21,157 +17,161 @@ function setUpFileInput(handleDocumentXml, progress) {
     var dropZone = document.getElementById("drop_zone");
     dropZone.addEventListener("drop", handleFileSelectDrop, false);
     dropZone.addEventListener("dragover", handleFileSelectDragOver, false);
-}
-
-function handleFileSelectBrowse(evt) {
-    evt.stopPropagation();
-    evt.preventDefault();
-
-    handleFile(evt.target.files, thisProgress);
-}
-
-function handleFileSelectDrop(evt) {
-    evt.stopPropagation();
-    evt.preventDefault();
-
-    handleFile(evt.dataTransfer.files, thisProgress);
-}
-
-function handleFileSelectDragOver(evt) {
-    evt.stopPropagation();
-    evt.preventDefault();
-    evt.dataTransfer.dropEffect = "copy";
-}
-
-function handleFile(files) {
     
-    document.getElementById("list").innerHTML = "<ul>" + fileSummary(files) + "</ul>";
+    function handleFileSelectBrowse(evt) {
+        evt.stopPropagation();
+        evt.preventDefault();
 
-    $("#xml_content").text("");
-    readFiles(files);
+        handleFile(evt.target.files, progress);
+    }
 
-}
+    function handleFileSelectDrop(evt) {
+        evt.stopPropagation();
+        evt.preventDefault();
 
-function readFiles(files) {
-    
-    var file = files[0];
-    readFile(file);
-}
+        handleFile(evt.dataTransfer.files, progress);
+    }
 
-function readFile(file) {
-    
-    var start = 0;
-    var stop = file.size - 1;
+    function handleFileSelectDragOver(evt) {
+        evt.stopPropagation();
+        evt.preventDefault();
+        evt.dataTransfer.dropEffect = "copy";
+    }
 
-    $("#byte_range").show();
-    $("#byte_content").show();
+    function handleFile(files) {
 
-    var reader = getReader(file, start, stop, thisProgress);
+        $("#list").html("<ul>" + fileSummary(files) + "</ul>");
 
-    var blob = file.slice(start, stop + 1);
-    reader.readAsBinaryString(blob);
+        $("#xml_content").text("");
+        $("#byte_range").text("");
+        $("#byte_content").text("");
 
-    zip.createReader(new zip.BlobReader(blob), function (reader) {
+        $("#cancel_read").show();
+        progress.show();
 
-        // get all entries from the zip
-        reader.getEntries(function (entries) {
-            if (entries.length) {
+        $("#byte_range").show();
+        $("#byte_content").show();
 
-                for (var i = 0; i < entries.length; i++) {
-                    var entry = entries[i];
+        readFiles(files);
+    }
 
-                    if (entry.filename == "word/document.xml") {
-                        entry.getData(new zip.TextWriter(), function (text) {
-                            // text contains the entry data as a String
-                            handleDocumentXml(text);
+    function readFiles(files) {
 
-                            // close the zip reader
-                            reader.close(function () {
-                                // onclose callback
+        var file = files[0];
+        readFile(file);
+    }
+
+    function readFile(file) {
+
+        var start = 0;
+        var stop = file.size - 1;
+
+        var reader = getReader(file, start, stop, progress);
+
+        var blob = file.slice(start, stop + 1);
+        reader.readAsBinaryString(blob);
+
+        zip.createReader(new zip.BlobReader(blob), function (reader) {
+
+            // get all entries from the zip
+            reader.getEntries(function (entries) {
+                if (entries.length) {
+
+                    for (var i = 0; i < entries.length; i++) {
+                        var entry = entries[i];
+
+                        if (entry.filename == "word/document.xml") {
+                            entry.getData(new zip.TextWriter(), function (text) {
+                                // text contains the entry data as a String
+                                handleDocumentXml(text);
+
+                                // close the zip reader
+                                reader.close(function () {
+                                    // onclose callback
+                                });
+
+                            }, function (current, total) {
+                                // onprogress callback
                             });
-
-                        }, function (current, total) {
-                            // onprogress callback
-                        });
+                        }
                     }
                 }
-            }
+            });
+        }, function (error) {
+            // onerror callback
         });
-    }, function (error) {
-        // onerror callback
-    });
-}
+    }
 
 
-function getReader(file, start, stop, progress) {
+    function getReader(file, start, stop) {
 
-    $("#cancel_read").show();
-    $("#progress_bar").show();
+        // Reset progress indicator on new file selection.
+        progress.css("width = 0px;");
+        progress.text('0%');
 
-    // Reset progress indicator on new file selection.
-    progress.style.width = '0%';
-    progress.textContent = '0%';
+        var reader = new FileReader();
+        reader.onerror = errorHandler;
+        reader.onprogress = updateProgress;
+        reader.onabort = function (e) {
+            alert('File read cancelled');
+        };
+        reader.onloadstart = function (e) {
+            progress.addClass('loading');
+        };
+        reader.onload = function (e) {
+            progress.css("width = 100%");
+            progress.text('100%');
+            var progressId = progress.attr("id");
+            setTimeout("document.getElementById('progress_bar').className='';", 2000);
+        };
 
-    var reader = new FileReader();
-    reader.onerror = errorHandler;
-    reader.onprogress = updateProgress;
-    reader.onabort = function (e) {
-        alert('File read cancelled');
-    };
-    reader.onloadstart = function (e) {
-        document.getElementById('progress_bar').className = 'loading';
-    };
-    reader.onload = function (e) {
-        progress.style.width = '100%';
-        progress.textContent = '100%';
-        setTimeout("document.getElementById('progress_bar').className='';", 2000);
-    };
+        // If we use onloadend, we need to check the readyState.
+        reader.onloadend = function (evt) {
+            if (evt.target.readyState == FileReader.DONE) {
+                handleText(evt.target.result);
+                handleSummary(['Read bytes: ', start + 1, ' - ', stop + 1,
+                     ' of ', file.size, ' byte file'].join(''));
 
-    // If we use onloadend, we need to check the readyState.
-    reader.onloadend = function (evt) {
-        if (evt.target.readyState == FileReader.DONE) {
-            document.getElementById('byte_content').textContent = evt.target.result;
-            document.getElementById('byte_range').textContent =
-                ['Read bytes: ', start + 1, ' - ', stop + 1,
-                 ' of ', file.size, ' byte file'].join('');
+                //zippedContents = evt.target.result;
 
-            //zippedContents = evt.target.result;
+            }
+        };
+        return reader;
+    }
 
+    function abortRead() {
+        reader.abort();
+    }
+
+    function updateProgress(evt) {
+        // evt is an ProgressEvent.
+        if (evt.lengthComputable) {
+            var percentLoaded = Math.round((evt.loaded / evt.total) * 100);
+            // Increase the progress bar length.
+            if (percentLoaded < 100) {
+                progress.css("width = " + percentLoaded + "%;");
+                progress.text(percentLoaded + "%");
+            }
         }
-    };
-    return reader;
-}
+    }
 
-function abortRead() {
-    reader.abort();
-}
-
-function updateProgress(evt) {
-    // evt is an ProgressEvent.
-    if (evt.lengthComputable) {
-        var percentLoaded = Math.round((evt.loaded / evt.total) * 100);
-        // Increase the progress bar length.
-        if (percentLoaded < 100) {
-            thisProgress.style.width = percentLoaded + '%';
-            thisProgress.textContent = percentLoaded + '%';
-        }
+    function errorHandler(evt) {
+        switch (evt.target.error.code) {
+            case evt.target.error.NOT_FOUND_ERR:
+                alert('File Not Found!');
+                break;
+            case evt.target.error.NOT_READABLE_ERR:
+                alert('File is not readable');
+                break;
+            case evt.target.error.ABORT_ERR:
+                break; // noop
+            default:
+                alert('An error occurred reading this file.');
+        };
     }
 }
 
-function errorHandler(evt) {
-    switch (evt.target.error.code) {
-        case evt.target.error.NOT_FOUND_ERR:
-            alert('File Not Found!');
-            break;
-        case evt.target.error.NOT_READABLE_ERR:
-            alert('File is not readable');
-            break;
-        case evt.target.error.ABORT_ERR:
-            break; // noop
-        default:
-            alert('An error occurred reading this file.');
-    };
-}
+
 
 function fileSummary(files) {
     var output = [];

@@ -66,6 +66,7 @@ body {
     max-height: 200px;
     overflow-y: auto;
     overflow-x: hidden;
+    font-size: 12px;
 }
 
 #progress_bar {
