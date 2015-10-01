@@ -43,20 +43,9 @@ function handleFileSelectDragOver(evt) {
     evt.dataTransfer.dropEffect = "copy";
 }
 
-function FileSummary(files) {
-    var output = [];
-    for (var i = 0, f; f = files[i]; i++) {
-        output.push("<li><strong>", escape(f.name), "</strong> (", f.type || "n/a", ") - ",
-            f.size, " bytes, last modified: ",
-            f.lastModifiedDate ? f.lastModifiedDate.toLocaleDateString() : "n/a",
-            "</li>");
-    }
-    return output.join("");
-}
-
 function handleFile(files) {
     
-    document.getElementById("list").innerHTML = "<ul>" + FileSummary(files) + "</ul>";
+    document.getElementById("list").innerHTML = "<ul>" + fileSummary(files) + "</ul>";
 
     $("#xml_content").text("");
     readFiles(files);
@@ -67,45 +56,6 @@ function readFiles(files) {
     
     var file = files[0];
     readFile(file);
-}
-
-function getReader(file, start, stop, progress) {
-    
-    $("#cancel_read").show();
-    $("#progress_bar").show();
-
-    // Reset progress indicator on new file selection.
-    progress.style.width = '0%';
-    progress.textContent = '0%';
-
-    var reader = new FileReader();
-    reader.onerror = errorHandler;
-    reader.onprogress = updateProgress;
-    reader.onabort = function (e) {
-        alert('File read cancelled');
-    };
-    reader.onloadstart = function (e) {
-        document.getElementById('progress_bar').className = 'loading';
-    };
-    reader.onload = function (e) {
-        progress.style.width = '100%';
-        progress.textContent = '100%';
-        setTimeout("document.getElementById('progress_bar').className='';", 2000);
-    };
-
-    // If we use onloadend, we need to check the readyState.
-    reader.onloadend = function (evt) {
-        if (evt.target.readyState == FileReader.DONE) {
-            document.getElementById('byte_content').textContent = evt.target.result;
-            document.getElementById('byte_range').textContent =
-                ['Read bytes: ', start + 1, ' - ', stop + 1,
-                 ' of ', file.size, ' byte file'].join('');
-
-            //zippedContents = evt.target.result;
-
-        }
-    };
-    return reader;
 }
 
 function readFile(file) {
@@ -152,8 +102,60 @@ function readFile(file) {
     });
 }
 
+
+function getReader(file, start, stop, progress) {
+
+    $("#cancel_read").show();
+    $("#progress_bar").show();
+
+    // Reset progress indicator on new file selection.
+    progress.style.width = '0%';
+    progress.textContent = '0%';
+
+    var reader = new FileReader();
+    reader.onerror = errorHandler;
+    reader.onprogress = updateProgress;
+    reader.onabort = function (e) {
+        alert('File read cancelled');
+    };
+    reader.onloadstart = function (e) {
+        document.getElementById('progress_bar').className = 'loading';
+    };
+    reader.onload = function (e) {
+        progress.style.width = '100%';
+        progress.textContent = '100%';
+        setTimeout("document.getElementById('progress_bar').className='';", 2000);
+    };
+
+    // If we use onloadend, we need to check the readyState.
+    reader.onloadend = function (evt) {
+        if (evt.target.readyState == FileReader.DONE) {
+            document.getElementById('byte_content').textContent = evt.target.result;
+            document.getElementById('byte_range').textContent =
+                ['Read bytes: ', start + 1, ' - ', stop + 1,
+                 ' of ', file.size, ' byte file'].join('');
+
+            //zippedContents = evt.target.result;
+
+        }
+    };
+    return reader;
+}
+
 function abortRead() {
     reader.abort();
+}
+
+function updateProgress(evt) {
+    // evt is an ProgressEvent.
+    if (evt.lengthComputable) {
+        var percentLoaded = Math.round((evt.loaded / evt.total) * 100);
+        // Increase the progress bar length.
+        if (percentLoaded < 100) {
+            thisProgress.style.width = percentLoaded + '%';
+            thisProgress.textContent = percentLoaded + '%';
+        }
+    }
 }
 
 function errorHandler(evt) {
@@ -171,14 +173,13 @@ function errorHandler(evt) {
     };
 }
 
-function updateProgress(evt) {
-    // evt is an ProgressEvent.
-    if (evt.lengthComputable) {
-        var percentLoaded = Math.round((evt.loaded / evt.total) * 100);
-        // Increase the progress bar length.
-        if (percentLoaded < 100) {
-            thisProgress.style.width = percentLoaded + '%';
-            thisProgress.textContent = percentLoaded + '%';
-        }
+function fileSummary(files) {
+    var output = [];
+    for (var i = 0, f; f = files[i]; i++) {
+        output.push("<li><strong>", escape(f.name), "</strong> (", f.type || "n/a", ") - ",
+            f.size, " bytes, last modified: ",
+            f.lastModifiedDate ? f.lastModifiedDate.toLocaleDateString() : "n/a",
+            "</li>");
     }
+    return output.join("");
 }
