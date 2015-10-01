@@ -57,7 +57,18 @@
     <Reference Include="System.EnterpriseServices" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="code.js" />
+    <Content Include="cookies.js" />
+    <Content Include="deflate.js" />
+    <Content Include="files.js" />
+    <Content Include="index.html" />
+    <Content Include="inflate.js" />
+    <Content Include="jquery-1.11.3.js" />
+    <Content Include="page.html" />
+    <Content Include="styles.css" />
     <Content Include="Web.config" />
+    <Content Include="z-worker.js" />
+    <Content Include="zip.js" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />

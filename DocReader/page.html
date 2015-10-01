@@ -1,0 +1,113 @@
+<!-- Code for the quiz - the page itself. Written in HTML language. -->
+
+<html lang="en">
+
+<head>
+    <title>Daisy's Quiz</title>
+
+    <script src="jquery-1.11.3.js" type="text/javascript" ></script>
+    <script src="cookies.js"></script>
+    <script type="text/javascript" src="zip.js"></script>
+    <script src="files.js"></script>
+
+    <script src="code.js" type="text/javascript" ></script>
+    <link href="styles.css" rel="stylesheet" />
+</head>
+
+<body>
+    <input type="file" id="files" name="files[]" multiple />
+    <div id="drop_zone">Drop files here</div>
+    <output id="list"></output>
+
+    <div id="byte_range"></div>
+    <div id="byte_content"></div>
+
+    <div id="cancel_read">
+        <button>Cancel read</button>
+    </div>
+    <div id="progress_bar">
+        <div class="percent">0%</div>
+    </div>
+
+    <div id="xml_content"></div>
+
+    <div>
+
+        <h1>
+	        Welcome to the Quiz
+        </h1>
+
+        <div id="startAgain" class="right-side start-again">
+
+            <p>
+                Start again
+            </p>
+
+        </div>
+        
+
+        <h2>
+            question 1
+        </h2>
+
+        <p>  is it true that the romans used a spoon to get their earwax out? </p>
+
+        <div id="trueButton" class="button true">
+            true    
+        </div>
+
+        <div id="falseButton" class="button false">
+            false    
+        </div>
+
+        <div class="after-buttons"></div>
+      
+        <div id="submitButton" class="button submit">
+            submit
+        </div>
+
+        <div class="after-buttons"></div>
+      
+
+        <div id="question2">
+
+            <h2>
+                question 2
+            </h2>
+
+            <p>
+                is it true that the first saxons were named after the sons of the god Sax?
+            </p>
+
+            <div id="trueButto" class="button true">
+                true    
+            </div>
+
+            <div id="falseButto" class="button false">
+                false    
+            </div>
+
+            <div class="after-buttons"></div>
+      
+            <div id="submitButto" class="button submit">
+                submit
+            </div>
+
+            <div class="after-buttons"></div>
+
+        </div>
+
+
+        <div id="question3">
+
+            <h2>
+                question 3
+            </h2>
+
+        </div>
+
+    </div>
+</body>
+
+</html>
+
